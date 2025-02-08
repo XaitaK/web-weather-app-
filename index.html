@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогноз погоды</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div class="weather-app">
+        <h1>Прогноз погоды</h1>
+
+        <input type="text" id="cityInput" placeholder="Введите город" list="citySuggestions"/>
+        <datalist id="citySuggestions"></datalist>
+
+        <button id="getWeatherBtn">Узнать погоду</button>
+
+        <div id="clockContainer">
+            <h2>Текущее время:</h2>
+            <p id="clock"></p>
+        </div>
+
+        <div id="weatherCard" class="hidden">
+            <h2 id="cityName"></h2>
+            <p id="description"></p>
+            <img id="weatherIcon" src="" alt="Погода">
+
+            <div class="weather-info">
+                <p><strong>Температура:</strong> <span id="temperature"></span>°C</p>
+                <p><strong>Ощущается как:</strong> <span id="feelsLike"></span>°C</p>
+                <p><strong>Давление:</strong> <span id="pressure"></span> мм рт. ст.</p>
+                <p><strong>Влажность:</strong> <span id="humidity"></span>%</p>
+                <p><strong>Скорость ветра:</strong> <span id="windSpeed"></span> м/с</p>
+                <p><strong>Индекс УФ:</strong> <span id="uvIndex"></span></p>
+                <p><strong>Качество воздуха:</strong> <span id="airQuality"></span></p>
+            </div>
+
+            <canvas id="temperatureChart"></canvas>
+        </div>
+
+        <div id="forecastTable" class="hidden">
+            <h3>Почасовой прогноз</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Температура</th>
+                        <th>Ветер</th>
+                        <th>Влажность</th>
+                    </tr>
+                </thead>
+                <tbody id="forecastBody"></tbody>
+            </table>
+        </div>
+
+        <div id="rainMapContainer" class="hidden">
+            <h3>Карта осадков</h3>
+            <div id="rainMap"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js" defer></script> 
+</body>
+</html>
