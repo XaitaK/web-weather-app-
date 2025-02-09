@@ -2,6 +2,7 @@ class WeatherApp {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.temperatureChart = null;
+        this.forecast = new Forecast(apiKey);
         this.init();
     }
 
@@ -28,7 +29,7 @@ class WeatherApp {
     }
 
     getCitySuggestions(query) {
-        const apiUrl = `https://api.teleport.org/api/cities/?search=${query}`;
+        const apiUrl = `http://api.teleport.org/api/cities/?search=${query}`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -47,7 +48,7 @@ class WeatherApp {
     }
 
     getWeather(city) {
-        const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric&lang=ru`;
+        const apiUrl = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric&lang=ru`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -69,9 +70,8 @@ class WeatherApp {
                 document.getElementById('humidity').innerText = data.main.humidity;
                 document.getElementById('windSpeed').innerText = Math.round(data.wind.speed);
                 document.getElementById('description').innerText = data.weather[0].description;
-                document.getElementById('weatherIcon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-
-                forecast.getForecast(city);
+                document.getElementById('weatherIcon').src = `http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                this.forecast.getForecast(city);
                 mapHandler.updateRainMap(data.coord.lat, data.coord.lon);
                 mapHandler.updateWeatherLayers(data.coord.lat, data.coord.lon);
                 this.getUVIndex(data.coord.lat, data.coord.lon);
@@ -84,7 +84,7 @@ class WeatherApp {
     }
 
     getUVIndex(lat, lon) {
-        const apiUrl = `https://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
+        const apiUrl = `http://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -95,7 +95,7 @@ class WeatherApp {
     }
 
     getAirPollution(lat, lon) {
-        const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
+        const apiUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -162,7 +162,7 @@ class Forecast {
     }
 
     getForecast(city) {
-        const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${this.apiKey}&units=metric&lang=ru`;
+        const apiUrl = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${this.apiKey}&units=metric&lang=ru`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -198,31 +198,80 @@ class MapHandler {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.rainMap = null;
+        this.initMap();
+    }
+
+    initMap() {
+        this.rainMap = L.map('rainMap').setView([55.76, 37.64], 10); // Координаты центра карты (Москва)
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(this.rainMap);
+
+        this.rainMap.on('mousemove', (e) => {
+            const coords = [e.latlng.lat, e.latlng.lng];
+            this.showWeatherInfo(coords);
+        });
     }
 
     updateRainMap(lat, lon) {
-        if (!this.rainMap) {
-            this.rainMap = L.map('rainMap').setView([lat, lon], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(this.rainMap);
-        } else {
-            this.rainMap.setView([lat, lon], 10);
-        }
-
-        L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
-            opacity: 0.7
-        }).addTo(this.rainMap);
+        this.rainMap.setView([lat, lon], 10);
     }
 
     updateWeatherLayers(lat, lon) {
-        L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
+        // Пример добавления слоя погоды (осадки)
+        L.tileLayer(`http://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
+            opacity: 0.7
+        }).addTo(this.rainMap);
+
+        // Пример добавления слоя температуры
+        L.tileLayer(`http://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
             opacity: 0.5
         }).addTo(this.rainMap);
 
-        L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
+        // Пример добавления слоя ветра
+        L.tileLayer(`http://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${this.apiKey}`, {
             opacity: 0.5
         }).addTo(this.rainMap);
+    }
+
+    showWeatherInfo(coords) {
+        const [lat, lon] = coords;
+        const apiUrl = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=metric&lang=ru`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                let weatherCondition = '';
+                switch (data.weather[0].main) {
+                    case 'Rain':
+                        weatherCondition = 'Дождь';
+                        break;
+                    case 'Snow':
+                        weatherCondition = 'Снег';
+                        break;
+                    case 'Clear':
+                        weatherCondition = 'Ясно';
+                        break;
+                    case 'Clouds':
+                        weatherCondition = 'Облачно';
+                        break;
+                    default:
+                        weatherCondition = data.weather[0].description;
+                }
+
+                const weatherInfo = `
+                    <div>
+                        <strong>Температура:</strong> ${Math.round(data.main.temp)}°C<br>
+                        <strong>Скорость ветра:</strong> ${Math.round(data.wind.speed)} м/с<br>
+                        <strong>Погодные условия:</strong> ${weatherCondition}<br>
+                    </div>
+                `;
+                const popup = L.popup()
+                    .setLatLng(coords)
+                    .setContent(weatherInfo)
+                    .openOn(this.rainMap);
+            })
+            .catch(error => console.error("Ошибка при получении данных погоды", error));
     }
 }
 

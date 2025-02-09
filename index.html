@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Прогноз погоды</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="http://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="http://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="weather-app">
@@ -56,12 +57,11 @@
 
         <div id="rainMapContainer" class="hidden">
             <h3>Карта осадков</h3>
-            <div id="rainMap"></div>
+            <div id="rainMap" style="width: 100%; height: 300px;"></div>
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js" defer></script> 
 </body>
 </html>
